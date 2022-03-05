@@ -144,11 +144,25 @@ class JanusSession {
             }
             ws.sink!.add(stringify({"janus": "keepalive", "session_id": sessionId, "transaction": transaction, ..._context._apiMap, ..._context._tokenMap}));
             _context._logger.fine("keepalive request sent to webSocket");
-            response = parse(await ws.stream.firstWhere((element) => (parse(element)['transaction'] == transaction)));
-            _context._logger.fine(response);
+            try {
+              response = parse(await ws.stream.firstWhere((element) => (parse(element)['transaction'] == transaction)));
+              if (response != null && response['error'] != null) {
+                _pluginHandles.forEach((key, value) {
+                  value._typedMessagesStreamController?.addError(response!['error']);
+                });
+                dispose();
+              }
+            } catch (e) {
+              _context._logger.warning("keep alive response error:${e}");
+              _pluginHandles.forEach((key, value) {
+                value._typedMessagesStreamController?.addError(e);
+              });
+              dispose();
+            }
           }
         } catch (e) {
           timer.cancel();
+          _context._logger.warning("keep alive error:${e}");
         }
       });
     }

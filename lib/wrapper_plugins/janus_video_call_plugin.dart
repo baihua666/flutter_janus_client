@@ -118,6 +118,16 @@ class JanusVideoCallPlugin extends JanusPlugin {
           typedEvent.event.plugindata?.data = VideoCallHangupEvent.fromJson(typedEvent.event.plugindata?.data);
           _typedMessagesSink?.add(typedEvent);
         }
+        else if (typedEvent.event.plugindata?.data['videocall'] == 'event' &&
+            typedEvent.event.plugindata?.data['result'] != null &&
+            typedEvent.event.plugindata?.data['result']['list'] is List) {
+          typedEvent.event.plugindata?.data = VideoCallListEvent.fromJson(typedEvent.event.plugindata?.data);
+          _typedMessagesSink?.add(typedEvent);
+        }
+        else if (typedEvent.event.plugindata?.data['videocall'] == 'event' &&
+            typedEvent.event.plugindata?.data['error_code'] != null) {
+          _typedMessagesSink?.addError(JanusError.fromMap(typedEvent.event.plugindata?.data));
+        }
       });
     }
   }

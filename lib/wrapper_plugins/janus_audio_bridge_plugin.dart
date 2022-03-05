@@ -341,6 +341,10 @@ class JanusAudioBridgePlugin extends JanusPlugin {
           typedEvent.event.plugindata?.data = AudioBridgeLeavingEvent.fromJson(typedEvent.event.plugindata?.data);
           _typedMessagesSink?.add(typedEvent);
         }
+        else if (typedEvent.event.plugindata?.data['audiobridge'] == 'event' &&
+            typedEvent.event.plugindata?.data['error_code'] != null) {
+          _typedMessagesSink?.addError(JanusError.fromMap(typedEvent.event.plugindata?.data));
+        }
       });
     }
   }

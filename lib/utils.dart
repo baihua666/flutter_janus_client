@@ -192,6 +192,10 @@ stringify(dynamic) {
 }
 
 parse(dynamic) {
+  if (!(dynamic is String)) {
+    print('dynamic:${dynamic}');
+    return null;
+  }
   JsonDecoder jsonDecoder = JsonDecoder();
   return jsonDecoder.convert(dynamic);
 }

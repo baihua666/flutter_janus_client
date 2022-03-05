@@ -101,7 +101,7 @@ class _VideoCallV2ExampleState extends State<TypedVideoCallV2Example> {
 
   initJanusClient() async {
     ws = WebSocketJanusTransport(url: servermap['janus_ws']);
-    j = JanusClient(transport: ws, iceServers: [RTCIceServer(urls: "stun:stun.voip.eutelia.it:3478", username: "", credential: "")], isUnifiedPlan: true);
+    j = JanusClient(transport: ws, iceServers: [RTCIceServer(urls: "stun:stun.voip.eutelia.it:3478", username: "", credential: "",)], isUnifiedPlan: true, apiSecret: servermap['apiSecret'], withCredentials: servermap['apiSecret'] != null);
     session = await j.createSession();
     publishVideo = await session.attach<JanusVideoCallPlugin>();
     await _remoteVideoRenderer.initialize();
@@ -154,6 +154,8 @@ class _VideoCallV2ExampleState extends State<TypedVideoCallV2Example> {
         await destroy();
       }
       publishVideo.handleRemoteJsep(even.jsep);
+    },onError:(error){
+      print(error);
     });
     await openRegisterDialog();
   }
@@ -266,7 +268,7 @@ class _VideoCallV2ExampleState extends State<TypedVideoCallV2Example> {
   Future<void> cleanUpWebRTCStuff() async {
     await stopAllTracksAndDispose(localStream);
     await stopAllTracksAndDispose(remoteAudioStream);
-    await stopAllTracksAndDispose(remoteVideoStream);
+    // await stopAllTracksAndDispose(remoteVideoStream);
     _localRenderer.srcObject = null;
     _remoteVideoRenderer.srcObject = null;
     _localRenderer.dispose();

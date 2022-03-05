@@ -46,3 +46,19 @@ class HangupResult {
   }
 
 }
+
+class VideoCallListEvent {
+  VideoCallListEvent({
+     this.list,});
+
+  VideoCallListEvent.fromJson(dynamic json) {
+    list = json['result']['list'];
+  }
+  List<dynamic>? list;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['result'] = list;
+    return map;
+  }
+}

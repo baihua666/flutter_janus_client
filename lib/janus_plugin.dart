@@ -104,6 +104,8 @@ class JanusPlugin {
     } else if (_transport is WebSocketJanusTransport) {
       _wsStreamSubscription = (_transport as WebSocketJanusTransport).stream.listen((event) {
         _streamController!.add(parse(event));
+      },onError: (error){
+        _streamController!.addError(error);
       });
     }
   }
