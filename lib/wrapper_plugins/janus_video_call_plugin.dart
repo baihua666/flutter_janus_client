@@ -86,6 +86,13 @@ class JanusVideoCallPlugin extends JanusPlugin {
     dispose();
   }
 
+  /// reset rtchandle, reuse plugin
+  Future<void> hangupKeepPlugin() async {
+    await this.send(data: {"request": "hangup"});
+
+    resetRTCHandle();
+  }
+
   bool _onCreated = false;
 
   @override

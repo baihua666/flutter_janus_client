@@ -242,8 +242,15 @@ class JanusPlugin {
           RestJanusTransport rest = (_transport as RestJanusTransport);
           response = (await rest.post(request, handleId: handleId)) as Map<String, dynamic>;
         } else if (_transport is WebSocketJanusTransport) {
-          WebSocketJanusTransport ws = (_transport as WebSocketJanusTransport);
-          response = (await ws.send(request, handleId: handleId)) as Map<String, dynamic>;
+          try {
+            WebSocketJanusTransport ws = (_transport as WebSocketJanusTransport);
+            response = (await ws.send(request, handleId: handleId)) as Map<String, dynamic>;
+          }
+          catch (e) {
+            print('_handleIceCandidatesSending error:${e}');
+            _streamController!.addError(e);
+          }
+          
         }
         _streamController!.sink.add(response);
       }
@@ -443,6 +450,34 @@ class JanusPlugin {
       _context._logger.severe("error webrtchandle cant be null");
       return null;
     }
+  }
+
+  /// reset rtchandle, reuse plugin
+  resetRTCHandle() async {
+    if (webRTCHandle == null) {
+      return;
+    }
+    await stopAllTracksAndDispose(webRTCHandle?.localStream);
+    await webRTCHandle?.peerConnection?.close();
+    await webRTCHandle?.remoteStream?.dispose();
+    await webRTCHandle?.localStream?.dispose();
+    await webRTCHandle?.peerConnection?.dispose();
+
+    // initializing WebRTC Handle
+    Map<String, dynamic> configuration = {"iceServers": _context._iceServers != null ? _context._iceServers!.map((e) => e.toMap()).toList() : []};
+    if (_context._isUnifiedPlan && !_context._usePlanB) {
+      configuration.putIfAbsent('sdpSemantics', () => 'unified-plan');
+    } else {
+      configuration.putIfAbsent('sdpSemantics', () => 'plan-b');
+    }
+    _context._logger.fine('peer connection configuration');
+    _context._logger.fine(configuration);
+    RTCPeerConnection peerConnection = await createPeerConnection(configuration, {});
+    //unified plan webrtc tracks emitter
+    _handleUnifiedWebRTCTracksEmitter(peerConnection);
+    //send ice candidates to janus server on this specific handle
+    _handleIceCandidatesSending(peerConnection);
+    webRTCHandle?.peerConnection = peerConnection;
   }
 
   /// a utility method which can be used to switch camera of user device if it has more than one camera
